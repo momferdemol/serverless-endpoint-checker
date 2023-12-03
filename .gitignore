@@ -1,0 +1,26 @@
+# MacBook
+.DS_Store
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache
+
+# Environments
+.env
+.venv
+node_modules/
+
+# AWS CDK
+.cdk.staging/
+cdk.out/
+.build
+
+# Devenv
+.starship.toml
+.devenv*
+devenv.local.nix
+.envrc
+devenv.nix
+devenv.yaml

@@ -1,0 +1,20 @@
+format = """
+$shell\
+$git_branch\
+$aws
+$character
+"""
+
+add_newline = true
+
+[shell]
+style = 'cyan bold'
+format = '[$indicator]($style)'
+disabled = false
+
+[git_branch]
+symbol = '🌱 '
+format = ' | [$symbol$branch]($style)'
+
+[aws]
+format = ' | [$symbol($profile )(\($region\) )(\[$duration\] )]($style)'

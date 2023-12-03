@@ -1,0 +1,12 @@
+{
+    "name": "endpoint-checker",
+    "version": "0.1.0",
+    "scripts": {
+        "cdk": "cdk",
+        "build": "mkdir -p .build/lambdas ; cp -r service .build/lambdas ; mkdir -p .build/common_layer/ ; poetry export --only=lambda --without-hashes --format=requirements.txt > .build/common_layer/requirements.txt",
+        "bootstrap": "cdk bootstrap --no-app aws://$AWS_ACCOUNT/$AWS_REGION"
+    },
+    "dependencies": {
+        "aws-cdk": "2.110.1"
+    }
+}
