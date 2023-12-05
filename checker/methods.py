@@ -1,5 +1,3 @@
-# checker/api/methods/urls_post.py
-
 from typing import cast
 
 from aws_cdk import Duration

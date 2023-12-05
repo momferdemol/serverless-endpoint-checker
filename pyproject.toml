@@ -25,6 +25,8 @@ mypy-boto3-dynamodb = "^1.29.0"
 aws-lambda-typing = "^2.18.0"
 pydantic = "^2.3.0"
 pydantic-core = "^2.14.5"
+asyncio = "^3.4.3"
+aiohttp = "^3.9.1"
 
 
 [tool.poetry.group.tst.dependencies]

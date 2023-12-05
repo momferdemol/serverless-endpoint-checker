@@ -2,11 +2,12 @@
 
 import json
 import logging
+from http.client import HTTPConnection
 from os import environ
-from typing import Any
+from urllib.parse import urlparse
 
 from aws_lambda_typing.context import Context
-from aws_lambda_typing.events import APIGatewayProxyEventV1
+from aws_lambda_typing.events import EventBridgeEvent
 from boto3 import resource
 from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
@@ -29,7 +30,7 @@ def get_db_resource(table_name: str) -> Table:
     return dynamodb.Table(table_name)
 
 
-def scan_table(table_name: str) -> list[dict[str, Any]]:
+def scan_table(table_name: str) -> list[str]:
     table: Table = get_db_resource(table_name)
     response = table.scan(FilterExpression=Key("is_active").eq(True))
 
@@ -39,29 +40,55 @@ def scan_table(table_name: str) -> list[dict[str, Any]]:
             ExclusiveStartKey=response["LastEvaluatedKey"],
         )
 
-    records: list[dict[str, Any]] = []
+    urls: list[str] = []
     for item in response.get("Items", []):  # type: ignore
-        created_at = int(item["created_at"])  # type: ignore
-        records.append(
-            {
-                "id": item["id"],
-                "target_url": item["target_url"],
-                "is_active": item["is_active"],
-                "created_at": created_at,
-            }
-        )
-
-    return records
+        urls.append(item["target_url"])  # type: ignore
+    return urls
 
 
-def main(event: APIGatewayProxyEventV1, context: Context):
+def endpoint_is_online(url: str, timeout: int = 3) -> bool:
+    error = Exception("unknown error")
+    parser = urlparse(url)
+    host = parser.netloc or parser.path.split("/")[0]
+    for port in (80, 443):
+        connection = HTTPConnection(host=host, port=port, timeout=timeout)
+        try:
+            connection.request("HEAD", "/")
+            return True
+        except Exception as err:
+            error = err
+        finally:
+            connection.close()
+    raise error
+
+
+def synchronous_check(urls: list[str]) -> None:
+    for url in urls:
+        error = ""
+        try:
+            result = endpoint_is_online(url)
+        except Exception as err:
+            result = False
+            error = str(err)
+        display_check_result(result, url, error)
+
+
+def display_check_result(result: bool, url: str, error: str) -> None:
+    if result:
+        logger.info(f"The status of '{url}' is: OK ")
+    else:
+        logger.error(f"The status of '{url}' is: NOT OK \n '{error}' ")
+
+
+def main(event: EventBridgeEvent, context: Context):
     try:
         table_name = get_db_table_name()
-        records = scan_table(table_name)
+        urls = scan_table(table_name)
+        synchronous_check(urls)
         return {
             "statusCode": 200,
             "headers": {"Content-Type": "application/json"},
-            "body": json.dumps({"message": records}),
+            "body": json.dumps({"message": "Success"}),
         }
     except ClientError as err:
         logger.error(f"Error: {err}")

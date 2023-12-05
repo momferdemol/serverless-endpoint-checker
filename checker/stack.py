@@ -1,10 +1,8 @@
-# checker/stack.py
-
 from aws_cdk import Environment, Stack, Tags
 from constructs import Construct
 from typing_extensions import Self, TypedDict, Unpack
 
-from checker.api.rest_api import RestApi
+from checker.rest_api import RestApi
 from checker.settings import get_settings
 
 settings = get_settings()
